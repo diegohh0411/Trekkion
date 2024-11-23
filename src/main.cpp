@@ -2,6 +2,7 @@
 #include <SoftwareSerial.h>
 
 TrekkGPS gps;
+char* nmea_sentence;
 
 void setup() {
   Serial.begin(9600);
@@ -9,7 +10,10 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(gps.read());
+  GPSDatum d = gps.read();
+
+  if (d.valid)
+    d.print();
 
   delay(1000);
 }
