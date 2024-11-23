@@ -8,5 +8,11 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"istream": "cpp",
+			"*.tcc": "cpp",
+			"iostream": "cpp"
+		}
+	}
 }
