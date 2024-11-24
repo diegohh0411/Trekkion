@@ -6,24 +6,27 @@ TrekkGPS gps;
 void setup() {
   Serial.begin(9600);
   Serial.println("Trekkion setup begins.");
-  Serial.print("HE");
+
   gps.begin();
-  Serial.println("Y");
+
   Serial.println("Trekkion setups ends.");
 }
 
-GPSData currentData;
+GPSDatum currentData;
+#define json_buffer_size 128
+char json[json_buffer_size];
+
 void loop() {
   gps.readFromGPS();
-  gps.print();
   
   for (int i = 0; i < no_of_sentences; i++) {
     gps.get(i, currentData);
 
-    if (currentData.valid) {
-      currentData.JSON();
+    if (currentData.valid()) {
+      currentData.JSON(json, sizeof(json));
+      Serial.println(json);
     }
   }
 
-  delay(5000);
+  delay(1000);
 }

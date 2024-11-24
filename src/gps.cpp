@@ -16,7 +16,7 @@ void TrekkGPS::safeCopyString(char* dest, const char* src, size_t destSize) {
 
 void TrekkGPS::resetSentences() {
   for (int i = 0; i < no_of_sentences; i++) {
-    for (int u = 0; u < sentence_buffer; u++) {
+    for (int u = 0; u < sentence_buffer_size; u++) {
       sentences[i][u] = '\0';
     }
   }
@@ -72,21 +72,19 @@ void TrekkGPS::readFromGPS() {
         sentences[sdx][cdx] = currentChar;
         cdx++;
         
-        if (cdx >= sentence_buffer)
-          cdx = sentence_buffer - 1;
+        if (cdx >= sentence_buffer_size)
+          cdx = sentence_buffer_size - 1;
       }
     }
   }
 }
 
-void TrekkGPS::ParseGPGGA(int dxs, GPSData& data) { // DXS stands for inDeX of Sentence
-  data.valid = false;
-
+void TrekkGPS::ParseGPGGA(int dxs, GPSDatum& data) { // DXS stands for inDeX of Sentence
   if (strncmp(sentences[dxs], "GPGGA", 5) == 0) {
     safeCopyString(data.nmea_type, "GPGGA", sizeof(data.nmea_type));
 
     // Make a copy of the sentence to avoid modifying original
-    char tempSentence[sentence_buffer];
+    char tempSentence[sentence_buffer_size];
     safeCopyString(tempSentence, sentences[dxs], sizeof(tempSentence));
 
     char* token = strtok(tempSentence, ",");
@@ -118,18 +116,16 @@ void TrekkGPS::ParseGPGGA(int dxs, GPSData& data) { // DXS stands for inDeX of S
       fieldIndex++;
     }
 
-    data.valid = true;
+    data.isValidFromOrigin = true;
   }
 }
 
-void TrekkGPS::ParseGPRMC(int dxs, GPSData& data) { // DXS stands for inDeX of Sentence
-  data.valid = false;
-
+void TrekkGPS::ParseGPRMC(int dxs, GPSDatum& data) { // DXS stands for inDeX of Sentence
   if (strncmp(sentences[dxs], "GPRMC", 5) == 0) {
     safeCopyString(data.nmea_type, "GPRMC", sizeof(data.nmea_type));
 
     // Make a copy of the sentence to avoid modifying original
-    char tempSentence[sentence_buffer];
+    char tempSentence[sentence_buffer_size];
     safeCopyString(tempSentence, sentences[dxs], sizeof(tempSentence));
 
     char* token = strtok(tempSentence, ",");
@@ -156,17 +152,57 @@ void TrekkGPS::ParseGPRMC(int dxs, GPSData& data) { // DXS stands for inDeX of S
       fieldIndex++;
     }
 
-    data.valid = true;
+    data.isValidFromOrigin = true;
   }
 }
 
-void TrekkGPS::get(int dxs, GPSData& data) { // DXS stands for inDeX of Sentence
+void TrekkGPS::ParseGPGLL(int dxs, GPSDatum& data) { // DXS stands for inDeX of Sentence
+  if (strncmp(sentences[dxs], "GPGLL", 5) == 0) {
+    safeCopyString(data.nmea_type, "GPGLL", sizeof(data.nmea_type));
+
+    // Make a copy of the sentence to avoid modifying original
+    char tempSentence[sentence_buffer_size];
+    safeCopyString(tempSentence, sentences[dxs], sizeof(tempSentence));
+
+    char* token = strtok(tempSentence, ",");
+    int fieldIndex = 0;
+
+    while (token) {
+      switch(fieldIndex) {
+        case 1: // Latitude
+          safeCopyString(data.latitude, token, sizeof(data.latitude)); break;
+        case 2: // N/S Indicator
+          safeCopyString(data.direction_of_latitude, token, sizeof(data.direction_of_latitude)); break;
+        case 3: // Longitude
+          safeCopyString(data.longitude, token, sizeof(data.longitude)); break;
+        case 4: // E/W Indicator
+          safeCopyString(data.direction_of_longitude, token, sizeof(data.direction_of_longitude)); break;
+        case 5: // UTC Time
+          safeCopyString(data.timestamp, token, sizeof(data.timestamp)); break;
+        case 6: // Data status: "A" for valid data, "V" for warning
+          if (token[0] != 'A')
+            return;
+      }
+        
+      token = strtok(nullptr, ",");
+      fieldIndex++;
+    }
+
+    data.isValidFromOrigin = true;
+  }
+}
+
+void TrekkGPS::get(int dxs, GPSDatum& data) { // DXS stands for inDeX of Sentence
+  data.isValidFromOrigin = false;
+
   if (dxs >= 0 && dxs < no_of_sentences) {
     ParseGPGGA(dxs, data);
 
-    if (!data.valid)
+    if (!data.valid())
       ParseGPRMC(dxs, data);
-  } else {
-    // throw std::runtime_error("Index of Sentence `sdx` out of bounds.");
+
+    if (!data.valid())
+      ParseGPGLL(dxs, data);
+
   }
 }
