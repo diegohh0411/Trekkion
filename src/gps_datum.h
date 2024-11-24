@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <cstdio>
+#include "device_spec.h"
 
 struct GPSDatum {
   char timestamp[12] = {'\0'};
@@ -27,21 +28,26 @@ struct GPSDatum {
   bool valid() const {
     return timestamp[0] != '\0' &&
            latitude[0] != '\0' &&
+           decimal_latitude != 0.0 &&
            direction_of_latitude[0] != '\0' &&
            longitude[0] != '\0' &&
+           decimal_longitude != 0.0 &&
            direction_of_longitude[0] != '\0' &&
-           nmea_type[0] != '\0'
-           && isValidFromOrigin;
+           nmea_type[0] != '\0' && 
+           isValidFromOrigin;
   }
 
   void JSON(char* buffer, size_t bufferSize) const {
     snprintf(buffer, bufferSize, 
-             "{\"ts\":\"%s\",\"la\":\"%f\",\"lo\":\"%f\",\"al\":\"%s%s\",\"nt\":\"%s\"}", 
+             "{\"ts\":\"%s\",\"la\":\"%f\",\"lo\":\"%f\",\"al\":\"%s%s\",\"nt\":\"%s\",\"ids\":\"%s\", \"idr\":\"%s\"}", 
              timestamp, 
              decimal_latitude,
              decimal_longitude,
              altitude, unit_of_altitude, 
-             nmea_type);
+             nmea_type,
+             ids,
+             idr
+          );
   }
 };
 
