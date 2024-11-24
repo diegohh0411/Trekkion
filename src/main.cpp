@@ -25,6 +25,7 @@ void loop() {
     if (currentData.valid()) {
       currentData.JSON(json, sizeof(json));
       Serial.println(json);
+      Serial.println(currentData.originalNmea);
     }
   }
 

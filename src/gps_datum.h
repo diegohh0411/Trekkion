@@ -9,9 +9,11 @@ struct GPSDatum {
 
   char latitude[12]  = {'\0'};
   char direction_of_latitude[4] = {'\0'};
+  double decimal_latitude;
 
   char longitude[12]  = {'\0'};
   char direction_of_longitude[4] = {'\0'};
+  double decimal_longitude;
 
   char altitude[12]  = {'\0'};
   char unit_of_altitude[2]  = {'\0'};
@@ -19,6 +21,8 @@ struct GPSDatum {
   char nmea_type[12]  = {'\0'};
 
   bool isValidFromOrigin = false;
+
+  char originalNmea[128];
 
   bool valid() const {
     return timestamp[0] != '\0' &&
@@ -32,10 +36,10 @@ struct GPSDatum {
 
   void JSON(char* buffer, size_t bufferSize) const {
     snprintf(buffer, bufferSize, 
-             "{\"ts\":\"%s\",\"la\":\"%s%s\",\"lo\":\"%s%s\",\"al\":\"%s%s\",\"nt\":\"%s\"}", 
+             "{\"ts\":\"%s\",\"la\":\"%f\",\"lo\":\"%f\",\"al\":\"%s%s\",\"nt\":\"%s\"}", 
              timestamp, 
-             latitude, direction_of_latitude, 
-             longitude, direction_of_longitude, 
+             decimal_latitude,
+             decimal_longitude,
              altitude, unit_of_altitude, 
              nmea_type);
   }

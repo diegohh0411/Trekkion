@@ -22,6 +22,18 @@ void TrekkGPS::resetSentences() {
   }
 }
 
+double TrekkGPS::convertNmeaToDecimalDegrees(const char* coordinate, char direction) {
+  double degrees = atof(coordinate) / 100;
+  double minutes = degrees - static_cast<int>(degrees);
+  degrees = static_cast<int>(degrees) + (minutes * 100) / 60;
+
+  if (direction == 'S' || direction == 'W') {
+      degrees = -degrees;
+  }
+
+  return degrees;
+}
+
 TrekkGPS::TrekkGPS() : gps(0, 2) {}
 
 void TrekkGPS::begin() {
@@ -82,6 +94,7 @@ void TrekkGPS::readFromGPS() {
 void TrekkGPS::ParseGPGGA(int dxs, GPSDatum& data) { // DXS stands for inDeX of Sentence
   if (strncmp(sentences[dxs], "GPGGA", 5) == 0) {
     safeCopyString(data.nmea_type, "GPGGA", sizeof(data.nmea_type));
+    safeCopyString(data.originalNmea, sentences[dxs], sizeof(data.originalNmea));
 
     // Make a copy of the sentence to avoid modifying original
     char tempSentence[sentence_buffer_size];
@@ -91,6 +104,12 @@ void TrekkGPS::ParseGPGGA(int dxs, GPSDatum& data) { // DXS stands for inDeX of 
     int fieldIndex = 0;
 
     while (token) {
+      if (token[0] == '\0') {
+        fieldIndex++;
+        token = strtok(nullptr, ",");
+        continue;
+      }
+
       switch(fieldIndex) {
         case 1: // UTC Time
           safeCopyString(data.timestamp, token, sizeof(data.timestamp)); break;
@@ -116,6 +135,9 @@ void TrekkGPS::ParseGPGGA(int dxs, GPSDatum& data) { // DXS stands for inDeX of 
       fieldIndex++;
     }
 
+    data.decimal_latitude = convertNmeaToDecimalDegrees(data.latitude, data.direction_of_latitude[0]);
+    data.decimal_longitude = convertNmeaToDecimalDegrees(data.longitude, data.direction_of_longitude[0]);
+
     data.isValidFromOrigin = true;
   }
 }
@@ -123,6 +145,7 @@ void TrekkGPS::ParseGPGGA(int dxs, GPSDatum& data) { // DXS stands for inDeX of 
 void TrekkGPS::ParseGPRMC(int dxs, GPSDatum& data) { // DXS stands for inDeX of Sentence
   if (strncmp(sentences[dxs], "GPRMC", 5) == 0) {
     safeCopyString(data.nmea_type, "GPRMC", sizeof(data.nmea_type));
+    safeCopyString(data.originalNmea, sentences[dxs], sizeof(data.originalNmea));
 
     // Make a copy of the sentence to avoid modifying original
     char tempSentence[sentence_buffer_size];
@@ -132,6 +155,12 @@ void TrekkGPS::ParseGPRMC(int dxs, GPSDatum& data) { // DXS stands for inDeX of 
     int fieldIndex = 0;
 
     while (token) {
+      if (token[0] == '\0') {
+        fieldIndex++;
+        token = strtok(nullptr, ",");
+        continue;
+      }
+
       switch(fieldIndex) {
         case 1: // UTC Time
           safeCopyString(data.timestamp, token, sizeof(data.timestamp)); break;
@@ -152,6 +181,9 @@ void TrekkGPS::ParseGPRMC(int dxs, GPSDatum& data) { // DXS stands for inDeX of 
       fieldIndex++;
     }
 
+    data.decimal_latitude = convertNmeaToDecimalDegrees(data.latitude, data.direction_of_latitude[0]);
+    data.decimal_longitude = convertNmeaToDecimalDegrees(data.longitude, data.direction_of_longitude[0]);
+
     data.isValidFromOrigin = true;
   }
 }
@@ -159,6 +191,7 @@ void TrekkGPS::ParseGPRMC(int dxs, GPSDatum& data) { // DXS stands for inDeX of 
 void TrekkGPS::ParseGPGLL(int dxs, GPSDatum& data) { // DXS stands for inDeX of Sentence
   if (strncmp(sentences[dxs], "GPGLL", 5) == 0) {
     safeCopyString(data.nmea_type, "GPGLL", sizeof(data.nmea_type));
+    safeCopyString(data.originalNmea, sentences[dxs], sizeof(data.originalNmea));
 
     // Make a copy of the sentence to avoid modifying original
     char tempSentence[sentence_buffer_size];
@@ -168,6 +201,12 @@ void TrekkGPS::ParseGPGLL(int dxs, GPSDatum& data) { // DXS stands for inDeX of 
     int fieldIndex = 0;
 
     while (token) {
+      if (token[0] == '\0') {
+        fieldIndex++;
+        token = strtok(nullptr, ",");
+        continue;
+      }
+
       switch(fieldIndex) {
         case 1: // Latitude
           safeCopyString(data.latitude, token, sizeof(data.latitude)); break;
@@ -187,6 +226,9 @@ void TrekkGPS::ParseGPGLL(int dxs, GPSDatum& data) { // DXS stands for inDeX of 
       token = strtok(nullptr, ",");
       fieldIndex++;
     }
+
+    data.decimal_latitude = convertNmeaToDecimalDegrees(data.latitude, data.direction_of_latitude[0]);
+    data.decimal_longitude = convertNmeaToDecimalDegrees(data.longitude, data.direction_of_longitude[0]);
 
     data.isValidFromOrigin = true;
   }

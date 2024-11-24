@@ -23,6 +23,9 @@ class TrekkGPS {
 
     void safeCopyString(char* dest, const char* src, size_t destSize);
     void resetSentences();
+
+    double convertNmeaToDecimalDegrees(const char* coordinate, char direction);
+
     void ParseGPGGA(int dxs, GPSDatum& data); 
     void ParseGPRMC(int dxs, GPSDatum& data);
     void ParseGPGLL(int dxs, GPSDatum& data);
