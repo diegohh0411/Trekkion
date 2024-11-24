@@ -1,7 +1,9 @@
 #include "gps.h"
+#include "trekk_dht.h"
 #include <SoftwareSerial.h>
 
 TrekkGPS gps;
+TrekkDHT tdht;
 
 void setup() {
   Serial.begin(9600);
@@ -24,10 +26,11 @@ void loop() {
 
     if (currentData.valid()) {
       currentData.JSON(json, sizeof(json));
-      Serial.println(json);
-      Serial.println(currentData.originalNmea);
+
+      tdht.setTimestamp(currentData.timestamp);
+      tdht.JSON(json, sizeof(json));
     }
   }
 
-  delay(1000);
+  delay(5000);
 }
