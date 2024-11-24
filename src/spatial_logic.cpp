@@ -10,6 +10,15 @@ SpatialProcessor::SpatialProcessor(int redPin, int greenPin, int bluePin)
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
+
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(redPin, HIGH);
+    digitalWrite(greenPin, HIGH);
+    delay(500);
+    digitalWrite(redPin, LOW);
+    digitalWrite(greenPin, LOW);
+    delay(500);
+  }
 }
 
 void SpatialProcessor::parseRoute(const String& json) {
